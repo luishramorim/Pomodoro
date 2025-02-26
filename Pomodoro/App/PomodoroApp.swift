@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct PomodoroApp: App {
+struct PomodoroTimerApp: App {
     let persistenceController = PersistenceController.shared
 
     var body: some Scene {
