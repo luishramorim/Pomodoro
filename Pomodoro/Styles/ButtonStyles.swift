@@ -16,7 +16,6 @@ struct PrimaryButtonStyle: ButtonStyle {
             .background(Color.accentColor)
             .foregroundColor(.white)
             .cornerRadius(30)
-            .shadow(radius: 2, x: 2, y: 2)
     }
 }
 

@@ -1,5 +1,5 @@
 //
-//  TimerAttribuites.swift
+//  TimerAttributes.swift
 //  Pomodoro
 //
 //  Created by Luis Amorim on 26/02/25.
@@ -8,10 +8,11 @@
 import ActivityKit
 import SwiftUI
 
-struct TimerAttribuites: ActivityAttributes {
+struct TimerAttributes: ActivityAttributes {
     public typealias TimerStatus = ContentState
     
     public struct ContentState: Codable, Hashable {
-        var endTime: Date
+        var endTime: Double
     }
+    var pause: Bool = false
 }

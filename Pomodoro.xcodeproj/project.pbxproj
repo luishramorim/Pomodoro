@@ -80,7 +80,7 @@
 		9873E8AF2D6FA2AF00E4BD0D /* Exceptions for "Pomodoro" folder in "PomodoroWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				TimerAttribuites.swift,
+				TimerAttributes.swift,
 			);
 			target = 9873E8972D6FA1B600E4BD0D /* PomodoroWidgetExtension */;
 		};

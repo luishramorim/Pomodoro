@@ -10,17 +10,6 @@ import CoreData
 import UserNotifications
 import ActivityKit
 
-/// Defines the attributes for the timer live activity.
-struct TimerAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
-        /// The remaining time in seconds.
-        var remainingTime: Double
-    }
-    
-    /// A simple attribute to identify the timer.
-    var timerName: String
-}
-
 struct TimerView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -29,6 +18,7 @@ struct TimerView: View {
     @State private var remainingTime: Double = 25 * 60
     @State private var isRunning: Bool = false
     @State private var startDate: Date? = nil
+    @State private var endDate: Date? = nil
 
     /// Reference to the active live activity.
     @State private var timerActivity: Activity<TimerAttributes>?
@@ -50,14 +40,12 @@ struct TimerView: View {
                         } label: {
                             Image(systemName: "minus.circle.fill")
                                 .font(.title)
-                                .shadow(radius: 2)
                         }
                         .disabled(chosenMinutes <= 1 || isRunning)
                         
                         Text(timeString(from: Int(remainingTime)))
                             .font(.system(size: 64, weight: .bold, design: .monospaced))
                             .contentTransition(.numericText(value: remainingTime))
-                            .shadow(radius: 2)
                         
                         Button {
                             if !isRunning {
@@ -67,7 +55,6 @@ struct TimerView: View {
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .font(.title)
-                                .shadow(radius: 2)
                         }
                         .disabled(chosenMinutes >= 120 || isRunning)
                         
@@ -111,15 +98,14 @@ struct TimerView: View {
         return String(format: "%02d:%02d", minutes, secs)
     }
 
-    /// Starts the timer session and activates the live activity.
     func startTimer() {
         guard !isRunning else { return }
         startDate = Date()
+        endDate = startDate!.addingTimeInterval(remainingTime)
         isRunning = true
 
-        // Request a new live activity when the timer starts.
-        let attributes = TimerAttributes(timerName: "Pomodoro Timer")
-        let initialContentState = TimerAttributes.ContentState(remainingTime: remainingTime)
+        let attributes = TimerAttributes()
+        let initialContentState = TimerAttributes.ContentState(endTime: remainingTime)
         do {
             timerActivity = try Activity<TimerAttributes>.request(
                 attributes: attributes,
@@ -135,9 +121,8 @@ struct TimerView: View {
                 withAnimation(.easeInOut(duration: 1.0)) {
                     remainingTime -= 1
                 }
-                // Update the live activity with the new remaining time.
                 if let activity = timerActivity {
-                    let updatedContentState = TimerAttributes.ContentState(remainingTime: remainingTime)
+                    let updatedContentState = TimerAttributes.ContentState(endTime: remainingTime)
                     Task {
                         await activity.update(using: updatedContentState)
                     }
@@ -152,11 +137,16 @@ struct TimerView: View {
         }
     }
 
-    /// Pauses the timer session.
     func pauseTimer() {
         isRunning = false
         timer?.invalidate()
-        // You may choose to update or end the live activity here if needed.
+        
+        if let activity = timerActivity {
+            let updatedContentState = TimerAttributes.ContentState(endTime: remainingTime)
+            Task {
+                await activity.update(using: updatedContentState)
+            }
+        }
     }
 
     /// Resets the timer and ends the live activity.
@@ -164,6 +154,7 @@ struct TimerView: View {
         timer?.invalidate()
         remainingTime = totalTime
         isRunning = false
+        endDate = nil
         
         // End the live activity if it is active.
         if let activity = timerActivity {
